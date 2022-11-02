@@ -1,7 +1,6 @@
 package star_path;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Random;
@@ -10,10 +9,10 @@ import java.util.stream.IntStream;
 public class Star_Path {
 	
 	static double[][] cordinates;
-	static int numberOfCities;
-	static int numberOfAnts;
+	static int numberOfStars;
+	static int numberofProbes;
 	
-	static List<Ant> ants = new ArrayList<>();
+	static List<Probe> probes = new ArrayList<>();
 	static int[][] map;
 	
 	static int currentIndex;
@@ -25,151 +24,99 @@ public class Star_Path {
 	
 	public Star_Path(double[][] cordinatesInput) {
 		cordinates = cordinatesInput;
-		numberOfCities = cordinates.length;
-		numberOfAnts = (int) (numberOfCities * 0.8);
-		map = new int[numberOfCities][numberOfCities];
-		probabilities = new double[numberOfCities];
+		numberOfStars = cordinates.length;
+		numberofProbes = (int) (numberOfStars * 0.8);
+		map = new int[numberOfStars][numberOfStars];
+		probabilities = new double[numberOfStars];
 	}
 		
-
-	void findPath() {
-		
-		//set numberOfAnts different ants
-		for(int i = 0; i<numberOfAnts; i++) {
-			ants.add(new Ant(numberOfCities));
-		}
-		
-		
-		
-		//List<Ant> ants = new ArrayList<>();
-		
-		
+	int[] findPath() {
+		//set numberofProbes different ants
+		for(int i = 0; i<numberofProbes; i++) {
+			probes.add(new Probe(numberOfStars));
+		}		
 		int attempts = 100; //this is the number of different attempts from scratch
-		int maxIterations = 100; //this is the max iteration per ant per attempt
-		
+		int maxIterations = 100; //this is the max iteration per probe per attempt
 		
 		for(int i = 1; i <= attempts; i++) {
-			
 			setup(); //Set all ant to start at 0
 			currentIndex = 0;
 			resetMap(); //resetMap so that all trails have 1 preference each
 			
-			
 			//start the iteration - i.e start all ants from 0 and run maxIterations time
 			for(int j = 1; j <= maxIterations; j++) { 
 				
-				//move ants to desired path
-				move();
-				//System.out.println("Ant is moved");
-				update();
-				//System.out.println("Trail is updated");
-				getBest();
-				//System.out.println("Best is updated");
-				//update the trail
-				
-				
-				//update the best trail //return the best trail at the end
+				move(); //move ants
+				update(); //update path
+				getBest(); //update best path
 			}
 		}
-		System.out.println("Best tour length: " + (bestTourLength - numberOfCities));
-        System.out.println("Best tour order: " + Arrays.toString(bestTourOrder));
-        
-        double currentDistance = 0;
-        double maxDistance = 100;
-
-        for(int i=0; i<bestTourOrder.length-1; i++) {
-        	//if(i+1 < bestTourOrder.length) {
-    			currentDistance += cordinates[i][i+1];
-        		if (currentDistance <= maxDistance) {
-            		//System.out.println("Trail "+ bestTourOrder[i]+ " to "+ bestTourOrder[i+1]);
-            		System.out.print(bestTourOrder[i]);
-        		}
-        }
-        if (currentDistance <= maxDistance)
-    		System.out.print(bestTourOrder[bestTourOrder.length-1]); // print last element if there is still place
-	
-	
+        return bestTourOrder;
 	}
-	
-	static double[][] generateRandomMatrix(int n) {
-        double[][] randomMatrix = new double[n][n];
-        IntStream.range(0, n)
-            .forEach(i -> IntStream.range(0, n)
-                .forEach(j -> randomMatrix[i][j] = Math.abs(rand.nextInt(100) + 1)));
-        return randomMatrix;
-    }
-	
-	
-	
+		
 	static void setup() {
-		System.out.println("Setup");
-		for(int k = 0; k < numberOfAnts; k++) {
-			ants.get(k).clear();
-			ants.get(k).visitCity(-1, 0);
+		//System.out.println("Setup");
+		for(int k = 0; k < numberofProbes; k++) {
+			probes.get(k).clear();
+			probes.get(k).visitStar(-1, 0);
 		}
 	}
 	
 	static void resetMap(){
-		System.out.println("Reset");
-    	for(int i = 0; i< numberOfCities; i++) {
-    		for(int j=0; j < numberOfCities; j++) {
+		//System.out.println("Reset");
+    	for(int i = 0; i< numberOfStars; i++) {
+    		for(int j=0; j < numberOfStars; j++) {
     			map[i][j] = 1;
     		}
     	}
     }
 	
 	static void move() {
-		System.out.println("Move");
-		for(int i = currentIndex; i < numberOfCities-1; i++) {/////////////
-			ants.forEach(ant -> ant.visitCity(currentIndex, bestNext(ant)));
+		//System.out.println("Move");
+		for(int i = currentIndex; i < numberOfStars-1; i++) {
+			probes.forEach(ant -> ant.visitStar(currentIndex, bestNext(ant)));
             currentIndex++;
 		}
 	}
 	
-	static int bestNext(Ant ant) {
+	static int bestNext(Probe probe) {
 		
-		int possiblePath = rand.nextInt(numberOfCities - currentIndex);
+		int possiblePath = rand.nextInt(numberOfStars - currentIndex);
 		if (rand.nextDouble() < 0.5) {//here 0.5 is the random factor which means how random should we be
-            OptionalInt cityIndex = IntStream.range(0, numberOfCities)
-                .filter(i -> i == possiblePath && !ant.visited(i))
+            OptionalInt star = IntStream.range(0, numberOfStars)
+                .filter(i -> i == possiblePath && !probe.visited(i))
                 .findFirst();
-            if (cityIndex.isPresent()) {
-                return cityIndex.getAsInt();
+            if (star.isPresent()) {
+                return star.getAsInt();
             }
         }
-		probability(ant);
-        double r = rand.nextDouble();
+		probability(probe);
         double total = 0;
-        for (int i = 0; i < numberOfCities; i++) {
+        for (int i = 0; i < numberOfStars; i++) {
             total += probabilities[i];
             //total = total + 0.8;
-        	if (total >= r) {
+        	if (total >= rand.nextDouble()) {
                 return i;
-            }
+        	}
         }
-
-        throw new RuntimeException("There are no other cities");
+        throw new RuntimeException();
 	}
 	
-	static void probability(Ant ant) {
-		int alpha = 1;
-		int beta = 5;
-		
-		int i = ant.trail[currentIndex];
-        double pheromone = 0.0;
-        for (int l = 0; l < numberOfCities; l++) {
-            if (!ant.visited(l)) {
-            	System.out.println(i + " " + l + " "+ map.length + " " + map[0].length + " "
-            			+ " "+ cordinates.length + " " + cordinates[0].length + " ");
-                pheromone += Math.pow(map[i][l], alpha) * Math.pow(1.0 / cordinates[i][l], beta);
+	static void probability(Probe probe) {		
+        double density = 0.0;
+        for (int l = 0; l < numberOfStars; l++) {
+            if (!probe.visited(l)) {
+            	//System.out.println(i + " " + l + " "+ map.length + " " + map[0].length + " "
+            	//		+ " "+ cordinates.length + " " + cordinates[0].length + " ");
+                density += Math.pow(map[probe.path[currentIndex]][l], 1) * Math.pow(1.0 / cordinates[probe.path[currentIndex]][l], 5);
             }
         }
-        for (int j = 0; j < numberOfCities; j++) {
-            if (ant.visited(j)) {
+        for (int j = 0; j < numberOfStars; j++) {
+            if (probe.visited(j)) {
                 probabilities[j] = 0.0;
             } else {
-                double numerator = Math.pow(map[i][j], alpha) * Math.pow(1.0 / cordinates[i][j], beta);
-                probabilities[j] = numerator / pheromone;
+                double numerator = Math.pow(map[probe.path[currentIndex]][j], 1) * Math.pow(1.0 / cordinates[probe.path[currentIndex]][j], 5);
+                probabilities[j] = numerator / density;
             }
         }
 	}
@@ -177,34 +124,33 @@ public class Star_Path {
 	static void update() {
 		
 		//evaporate trails by a factor of 0.5
-		for (int i = 0; i < numberOfCities; i++) {
-            for (int j = 0; j < numberOfCities; j++) {
+		for (int i = 0; i < numberOfStars; i++) {
+            for (int j = 0; j < numberOfStars; j++) {
                 map[i][j] *= 0.5;
             }
         }
 		
 		//update trails to reflect the current density
-		for (Ant a : ants) {
-            double contribution = 500 / a.trailLength(cordinates); //Here 500 represents what the amount dropped should be
-            for (int i = 0; i < numberOfCities - 1; i++) {
-                map[a.trail[i]][a.trail[i + 1]] += contribution;
+		for (Probe p : probes) {
+            double density = 500 / p.pathSize(cordinates); //Here 500 represents what the amount dropped should be - density
+            for (int i = 0; i < numberOfStars - 1; i++) {
+                map[p.path[i]][p.path[i + 1]] += density;
             }
-            map[a.trail[numberOfCities - 1]][a.trail[0]] += contribution;
+            map[p.path[numberOfStars - 1]][p.path[0]] += density;
         }
-		
 	}
 	
 	static void getBest() {
 		//init case
     	if (bestTourOrder == null) {
-            bestTourOrder = ants.get(0).trail;
-            bestTourLength = ants.get(0).trailLength(cordinates);
+            bestTourOrder = probes.get(0).path;
+            bestTourLength = probes.get(0).pathSize(cordinates);
         }
     	//whichever ant took the shortest route
-        for (Ant a : ants) {
-            if (a.trailLength(cordinates) < bestTourLength) {
-                bestTourLength = a.trailLength(cordinates);
-                bestTourOrder = a.trail.clone();
+        for (Probe p : probes) {
+            if (p.pathSize(cordinates) < bestTourLength) {
+                bestTourLength = p.pathSize(cordinates);
+                bestTourOrder = p.path.clone();
             }
         }
 	}
