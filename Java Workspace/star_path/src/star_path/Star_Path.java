@@ -9,42 +9,30 @@ import java.util.stream.IntStream;
 
 public class Star_Path {
 	
+	static double[][] cordinates;
+	static int numberOfCities;
+	static int numberOfAnts;
 	
-	public static void main(String[] args) {
-		AntColonyOptimization antt = new AntColonyOptimization(4);
-		antt.startAntOptimization();
-	}
-	
-	static double[][] cordinates = {{0,2,2,3}, {2,0,2,4}, {2,2,0,2}, {3,4,2,0}};
-	//static int[][] cordinates = {{1,1},{2,1},{3,1},{3,2},{5,7}};
-	
-	static int numberOfCities = cordinates.length;
-	
-	static int numberOfAnts = (int) (numberOfCities * 0.8); //0.8 is called Ant Ratio
 	static List<Ant> ants = new ArrayList<>();
-	
-	
-	static int[][] map = new int[numberOfCities][numberOfCities];
+	static int[][] map;
 	
 	static int currentIndex;
-	
 	static Random rand = new Random();
-	static double probabilities[] = new double[numberOfCities];
+	static double probabilities[];
 	
     static int[] bestTourOrder;
     static double bestTourLength;
-    /*
-	public static void main(String[] args) {
-		
-		//evaporation ratio so that a bad path can be eliminated
-		//done--Number of attempts
-		//done--Number of ants per attempt - determined by ant factor
-		//Maximum number of iteration per ant per attempt
-		
 	
+	public Star_Path(double[][] cordinatesInput) {
+		cordinates = cordinatesInput;
+		numberOfCities = cordinates.length;
+		numberOfAnts = (int) (numberOfCities * 0.8);
+		map = new int[numberOfCities][numberOfCities];
+		probabilities = new double[numberOfCities];
+	}
+		
 
-		
-		
+	void findPath() {
 		
 		//set numberOfAnts different ants
 		for(int i = 0; i<numberOfAnts; i++) {
@@ -102,7 +90,16 @@ public class Star_Path {
 	
 	
 	}
-	*/
+	
+	static double[][] generateRandomMatrix(int n) {
+        double[][] randomMatrix = new double[n][n];
+        IntStream.range(0, n)
+            .forEach(i -> IntStream.range(0, n)
+                .forEach(j -> randomMatrix[i][j] = Math.abs(rand.nextInt(100) + 1)));
+        return randomMatrix;
+    }
+	
+	
 	
 	static void setup() {
 		System.out.println("Setup");

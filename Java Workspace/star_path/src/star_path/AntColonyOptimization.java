@@ -21,7 +21,9 @@ public class AntColonyOptimization {
 
     private int numberOfCities;
     private int numberOfAnts;
-    private double graph[][] = {{0,2,2,3}, {2,0,2,4}, {2,2,0,2}, {3,4,2,0}};
+    private double graph[][];
+    //private double graph[][] = {{0,2,2,3}, {2,0,2,4}, {2,2,0,2}, {3,4,2,0}};
+    //private double graph[][] = {{0,4,4,5}, {4,0,4,6}, {4,4,0,3}, {5,6,3,0}};
     private double trails[][];
     
     
@@ -39,7 +41,17 @@ public class AntColonyOptimization {
     private double bestTourLength;
 
     public AntColonyOptimization(int noOfCities) {
-        //graph = generateRandomMatrix(noOfCities);
+        graph = generateRandomMatrix(noOfCities);
+        numberOfCities = graph.length;
+        numberOfAnts = (int) (numberOfCities * antFactor);
+
+        trails = new double[numberOfCities][numberOfCities];
+        probabilities = new double[numberOfCities];
+        IntStream.range(0, numberOfAnts)
+            .forEach(i -> ants.add(new Ant(numberOfCities)));
+    }
+    public AntColonyOptimization(double[][]matrix) {
+        graph = matrix;
         numberOfCities = graph.length;
         numberOfAnts = (int) (numberOfCities * antFactor);
 
